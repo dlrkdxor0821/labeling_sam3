@@ -3,4 +3,14 @@ opencv-python>=4.9
 numpy>=1.26
 pyyaml>=6.0
 pytest>=8.0
-# (ML 의존성 ultralytics·labelme 는 Phase 2+ 에서 추가)
+
+# Labeling & training
+ultralytics>=8.3.237      # SAM3 (Phase 2) + YOLO (Phase 5)
+labelme>=5.5              # manual review/correction (Phase 4)
+
+# Notes:
+# - GPU(RTX 4060): install CUDA torch BEFORE ultralytics, e.g.
+#     pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+# - SAM3 needs the Ultralytics CLIP fork:
+#     pip install git+https://github.com/ultralytics/CLIP.git
+# - SAM3 weights: request access on Hugging Face, download to model/sam3.pt
