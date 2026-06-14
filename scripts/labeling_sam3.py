@@ -32,6 +32,10 @@ MENU = [
     ("12", "Hugging Face 업로드",    "hf_upload.py",         False),
     ("13", "Hugging Face 다운로드",  "hf_download.py",       False),
     ("14", "폴더 비우기 (datasets/model/video)", "clean.py",  False),
+    (None, "── 배포 / OBB(집기용) ──", None, False),
+    ("15", "NCNN/ONNX 변환 (Pi 배포)",   "export_ncnn.py",   False),
+    ("16", "OBB 라벨 생성 (SAM3 마스크)", "obb_label.py",     False),
+    ("17", "OBB 모델 학습 (각도 탐지)",   "obb_train.py",     False),
 ]
 ACTIONS = {key: (script, needs_path) for key, _, script, needs_path in MENU if key}
 

@@ -65,7 +65,10 @@ laveling_sam3/
     ├── merge_datasets.py            # 여러 데이터셋을 하나로 합치기 (학습용)
     ├── hf_upload.py                 # 모델/데이터셋 Hugging Face 업로드
     ├── hf_download.py               # 모델/데이터셋 Hugging Face 다운로드
-    └── clean.py                     # datasets/model/video 폴더 비우기
+    ├── clean.py                     # datasets/model/video 폴더 비우기
+    ├── export_ncnn.py               # 모델 NCNN/ONNX/TFLite 변환 (Pi 배포)
+    ├── obb_label.py                 # [OBB] SAM3 마스크 → 회전박스 라벨
+    └── obb_train.py                 # [OBB] 회전박스(각도) 모델 학습
 ```
 
 > ⚠️ 스크립트는 **프로젝트 루트에서** 실행하세요: `python scripts/01_extract_frames.py …`
@@ -362,6 +365,63 @@ python scripts/clean.py
 python scripts/clean.py --targets all --yes              # 확인 없이 전부 비움
 python scripts/clean.py --targets model --include-weights # sam3.pt 까지 삭제
 ```
+
+---
+
+## 📦 라즈베리파이 배포 (NCNN/ONNX 변환, 보조 도구)
+
+학습한 `.pt` 를 그대로 Pi 에서 돌리면 느려요. **NCNN**(ARM 최적화 추론기)으로 변환하면
+Pi 에서 2~5배 빨라집니다(정확도는 거의 그대로). 학습은 데스크탑, **변환본만 Pi 로 복사**해 추론하세요.
+
+```bash
+python scripts/export_ncnn.py
+#  1) 어떤 모델을 변환할까요?  (model/<name>)
+#  2) 포맷?  (ncnn=Pi CPU 추천 / onnx / tflite=Coral Edge TPU용)
+#  3) imgsz? (Pi 는 320 권장)
+# -> model/<name>/train/weights/best_ncnn_model/ 생성 → Pi 로 복사
+```
+> `--int8` 로 양자화하면 더 빠름(정확도 약간↓). Coral 가속기 쓰면 `tflite` + `--int8`.
+
+**포맷 선택 가이드**
+
+| 환경 | 추천 포맷 |
+|------|----------|
+| 라즈베리파이 **CPU만** | **NCNN** (Pi CPU에서 보통 제일 빠름) |
+| **Coral USB / Edge TPU** | `tflite` + `--int8` |
+| **Hailo (Pi AI HAT)** | Hailo 전용 SDK (별도) |
+| 범용·다른 플랫폼 이동 | `onnx` |
+
+> ⚠️ **NCNN 단점:** 본질적으로 **CPU 전용**이라 Coral·Hailo 같은 **하드웨어 가속기를 못 굴려요**.
+> 또 변환이 다단계(`pnnx`)라 특이한 모델은 실패할 수 있고, 자료/커뮤니티가 ONNX·TFLite보다 적어요.
+> 표준 YOLO를 Pi CPU로 돌릴 땐 단점이 거의 안 와닿지만, **나중에 가속기를 붙이면 TFLite/Hailo로
+> 갈아타야** 합니다.
+
+---
+
+## 🤖 OBB(회전박스) 파이프라인 — 로봇 집기용 (별도 트랙)
+
+로봇팔이 책을 **집으려면 위치뿐 아니라 각도**가 필요해요. 기본 파이프라인의 수평 박스는
+각도가 없어서, **회전박스(OBB)** 모델을 따로 학습합니다. 기존 bbox 파이프라인과 **독립**이며,
+이미 추출한 프레임을 재사용해요.
+
+```bash
+# 1) OBB 라벨 생성 — SAM3를 segment 모드로 재실행, 마스크에 회전사각형을 fit
+python scripts/obb_label.py
+#   → datasets/<name>_obb/ 생성 (회전박스 라벨 + data.yaml)
+
+# 2) OBB 모델 학습
+python scripts/obb_train.py
+#   → model/<name>_obb/train/weights/best.pt
+
+# 3) (배포) NCNN 변환은 동일
+python scripts/export_ncnn.py --name <name>_obb
+```
+추론 시 각도를 바로 얻습니다:
+```python
+obb = results[0].obb
+cx, cy, w, h, angle = obb.xywhr[0]   # angle = 그리퍼 회전각(라디안)
+```
+> 평평한 면 위 책이면 이 각도 + (카메라 캘리브레이션) 으로 mono 카메라만으로 집기 좌표를 계산할 수 있어요.
 
 ---
 
