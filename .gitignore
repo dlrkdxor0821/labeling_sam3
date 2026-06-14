@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.venv/
+# 대용량 산출물·가중치는 추적 제외
+datasets/
+model/*.pt
+model/**/weights/
+video/
+runs/

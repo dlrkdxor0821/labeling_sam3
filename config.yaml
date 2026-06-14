@@ -1,0 +1,18 @@
+name: lecture_book          # 프로젝트/데이터셋 이름
+prompt: "book"              # SAM3 라벨링 대상 (= 클래스명)
+extract:
+  fps: 2                    # 초당 추출 프레임 수
+  dedup: true               # 거의 동일한 프레임 스킵
+  dedup_threshold: 3.0      # 평균 픽셀차가 이 값 미만이면 중복
+sam3:
+  model: model/sam3.pt
+  conf: 0.25
+  half: true
+qc:
+  conf_threshold: 0.40
+  topk_percent: null
+train:
+  yolo_model: yolo11s
+  epochs: 100
+  imgsz: 640
+  batch: 16

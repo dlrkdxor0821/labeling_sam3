@@ -1,0 +1,6 @@
+# Phase 1 (frame extraction)
+opencv-python>=4.9
+numpy>=1.26
+pyyaml>=6.0
+pytest>=8.0
+# (ML 의존성 ultralytics·labelme 는 Phase 2+ 에서 추가)
