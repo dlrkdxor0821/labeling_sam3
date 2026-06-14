@@ -31,6 +31,7 @@ MENU = [
     ("11", "데이터셋 합치기",        "merge_datasets.py",    False),
     ("12", "Hugging Face 업로드",    "hf_upload.py",         False),
     ("13", "Hugging Face 다운로드",  "hf_download.py",       False),
+    ("14", "폴더 비우기 (datasets/model/video)", "clean.py",  False),
 ]
 ACTIONS = {key: (script, needs_path) for key, _, script, needs_path in MENU if key}
 

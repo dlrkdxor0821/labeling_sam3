@@ -9,3 +9,5 @@ model/
 video/
 runs/
 yolo*.pt
+# 내부 설계/계획 문서 (superpowers 워크플로 산출물)
+docs/superpowers/

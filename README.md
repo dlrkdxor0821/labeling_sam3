@@ -64,7 +64,8 @@ laveling_sam3/
     ├── send_to_review.py            # 통과 프레임을 검수 큐로 재전송 (스팟 수정)
     ├── merge_datasets.py            # 여러 데이터셋을 하나로 합치기 (학습용)
     ├── hf_upload.py                 # 모델/데이터셋 Hugging Face 업로드
-    └── hf_download.py               # 모델/데이터셋 Hugging Face 다운로드
+    ├── hf_download.py               # 모델/데이터셋 Hugging Face 다운로드
+    └── clean.py                     # datasets/model/video 폴더 비우기
 ```
 
 > ⚠️ 스크립트는 **프로젝트 루트에서** 실행하세요: `python scripts/01_extract_frames.py …`
@@ -345,6 +346,22 @@ python scripts/hf_download.py
 > 모델을 받으면 `model/<이름>/train/weights/best.pt` 구조가 복원돼 `07_predict.py --name <이름>`
 > 으로 바로 추론됩니다. 데이터셋은 `data.yaml` 경로가 업로더 기준이라, 학습 전
 > `05_export_yolo.py` 로 재생성하세요.
+
+---
+
+## 🧹 폴더 비우기 (보조 도구)
+
+`datasets/` · `model/` · `video/` 의 내용물을 비웁니다(폴더 자체는 유지). 삭제 전 용량을
+보여주고 확인을 받아요. **`model/` 비울 때 `sam3.pt` 등 base 가중치는 기본 보존**합니다
+(게이트 모델이라 재다운로드가 번거로움).
+
+```bash
+python scripts/clean.py
+#  1) 무엇을 비울까요?  (datasets/model/video/all, 쉼표로 여러 개)
+#  -> 삭제 용량 미리보기 후 y/N 확인
+python scripts/clean.py --targets all --yes              # 확인 없이 전부 비움
+python scripts/clean.py --targets model --include-weights # sam3.pt 까지 삭제
+```
 
 ---
 
