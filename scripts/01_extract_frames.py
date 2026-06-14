@@ -9,7 +9,7 @@ from utils.paths import DATASETS_ROOT, SPLITS, resolve_versioned_dir, split_subd
 from utils.frames import extract_video_frames
 
 VIDEO_ROOT = Path("video")
-VIDEO_EXTS = (".mp4", ".avi", ".mov", ".mkv")
+VIDEO_EXTS = (".mp4", ".avi", ".mov", ".mkv", ".webm")
 
 
 def main():
