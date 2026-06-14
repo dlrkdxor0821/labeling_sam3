@@ -5,6 +5,8 @@ import shutil
 
 import cv2
 
+import sys, pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from utils.config import load_config
 from utils.paths import DATASETS_ROOT, SPLITS, split_subdirs
 from utils.qc import flagged_stems, frame_suspicion, read_yolo_boxes
