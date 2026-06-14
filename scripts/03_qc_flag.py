@@ -11,16 +11,18 @@ from utils.config import load_config
 from utils.paths import DATASETS_ROOT, SPLITS, split_subdirs
 from utils.qc import flagged_stems, frame_suspicion, read_yolo_boxes
 from utils.labelme_io import yolo_to_labelme
+from utils.prompt import ask_existing_dir, ask_float
 
 
 def main():
     cfg = load_config()
     ap = argparse.ArgumentParser()
-    ap.add_argument("--name", default=cfg["name"])
-    ap.add_argument("--threshold", type=float, default=1.0)
+    ap.add_argument("--name", default=None)
+    ap.add_argument("--threshold", type=float, default=None)
     args = ap.parse_args()
 
-    dataset_dir = DATASETS_ROOT / args.name
+    name, dataset_dir = ask_existing_dir("어떤 데이터셋을 QC 선별할까요?", args.name, DATASETS_ROOT)
+    threshold = ask_float("의심 기준 threshold (높일수록 적게 선별)", args.threshold, 1.0)
     subs = split_subdirs(dataset_dir)
     classes_file = dataset_dir / "classes.txt"
     class_names = classes_file.read_text().split() if classes_file.exists() else ["object"]
@@ -44,7 +46,7 @@ def main():
             frames.append({"stem": img.stem, "boxes": boxes, "conf": conf_map.get(img.stem)})
 
         scores = frame_suspicion(frames, conf_threshold=cfg["qc"]["conf_threshold"])
-        flagged = set(flagged_stems(scores, threshold=args.threshold))
+        flagged = set(flagged_stems(scores, threshold=threshold))
 
         rev_dir.mkdir(parents=True, exist_ok=True)
         for img in sorted(img_dir.glob("*.jpg")):

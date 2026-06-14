@@ -6,6 +6,7 @@ import sys, pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from utils.config import load_config
 from utils.paths import DATASETS_ROOT
+from utils.prompt import ask_existing_dir
 
 AVAILABLE_MODELS = [
     "yolo11n", "yolo11s", "yolo11m", "yolo11l", "yolo11x",
@@ -21,11 +22,11 @@ def ask(label, default):
 def main():
     cfg = load_config()
     ap = argparse.ArgumentParser()
-    ap.add_argument("--name", default=cfg["name"])
+    ap.add_argument("--name", default=None)
     ap.add_argument("--yes", action="store_true", help="use config defaults, no prompts")
     args = ap.parse_args()
 
-    dataset_dir = DATASETS_ROOT / args.name
+    name, dataset_dir = ask_existing_dir("어떤 데이터셋으로 학습할까요?", args.name, DATASETS_ROOT)
     data_yaml = dataset_dir / "data.yaml"
     if not data_yaml.exists():
         raise SystemExit(f"data.yaml missing: {data_yaml} (run 05_export_yolo first)")
@@ -49,9 +50,9 @@ def main():
     # absolute project path: a relative one gets nested under runs/detect/ by Ultralytics
     yolo.train(
         data=str(data_yaml), epochs=epochs, imgsz=imgsz, batch=batch, device=0,
-        project=str((Path("model") / args.name).resolve()), name="train", exist_ok=True,
+        project=str((Path("model") / name).resolve()), name="train", exist_ok=True,
     )
-    print(f"done -> model/{args.name}/train/weights/best.pt + results.png")
+    print(f"done -> model/{name}/train/weights/best.pt + results.png")
 
 
 if __name__ == "__main__":

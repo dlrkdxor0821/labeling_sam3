@@ -26,6 +26,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from utils.config import load_config
 from utils.paths import DATASETS_ROOT, SPLITS, split_subdirs
 from utils.labelme_io import labelme_to_yolo
+from utils.prompt import ask_existing_dir
 
 
 def plan_split(subs, split):
@@ -80,13 +81,11 @@ def integrity_check(subs):
 def main():
     cfg = load_config()
     ap = argparse.ArgumentParser()
-    ap.add_argument("--name", default=cfg["name"])
+    ap.add_argument("--name", default=None)
     ap.add_argument("--yes", action="store_true", help="skip confirmation prompt")
     args = ap.parse_args()
 
-    dataset_dir = DATASETS_ROOT / args.name
-    if not dataset_dir.exists():
-        raise SystemExit(f"dataset missing: {dataset_dir}")
+    name, dataset_dir = ask_existing_dir("어떤 데이터셋에 검수를 적용할까요?", args.name, DATASETS_ROOT)
     subs = split_subdirs(dataset_dir)
     classes_file = dataset_dir / "classes.txt"
     class_names = classes_file.read_text().split() if classes_file.exists() else ["object"]

@@ -10,6 +10,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from utils.config import load_config
 from utils.paths import DATASETS_ROOT, SPLITS, split_subdirs
 from utils.boxes import yolo_label_lines
+from utils.prompt import ask_existing_dir, ask_text
 
 
 def load_predictor(model_path, conf, half):
@@ -55,18 +56,17 @@ def label_one(predictor, image_path, prompt):
 def main():
     cfg = load_config()
     ap = argparse.ArgumentParser()
-    ap.add_argument("--name", default=cfg["name"])
-    ap.add_argument("--prompt", default=cfg["prompt"])
+    ap.add_argument("--name", default=None)
+    ap.add_argument("--prompt", default=None)
     args = ap.parse_args()
 
-    dataset_dir = DATASETS_ROOT / args.name
-    if not dataset_dir.exists():
-        raise SystemExit(f"dataset missing: {dataset_dir} (run 01_extract_frames first)")
+    name, dataset_dir = ask_existing_dir("어떤 데이터셋을 라벨링할까요?", args.name, DATASETS_ROOT)
+    prompt = ask_text("라벨링할 객체(프롬프트)?", args.prompt, cfg["prompt"])
     subs = split_subdirs(dataset_dir)
-    (dataset_dir / "classes.txt").write_text(args.prompt + "\n")
+    (dataset_dir / "classes.txt").write_text(prompt + "\n")
 
     predictor = load_predictor(cfg["sam3"]["model"], cfg["sam3"]["conf"], cfg["sam3"]["half"])
-    print(f"[label] SAM3 prompt='{args.prompt}' -> {dataset_dir}")
+    print(f"[label] SAM3 prompt='{prompt}' -> {dataset_dir}")
 
     for split in SPLITS:
         img_dir, lbl_dir = subs[split]["images"], subs[split]["labels"]
@@ -77,7 +77,7 @@ def main():
         confs, total = {}, 0
         imgs = sorted(img_dir.glob("*.jpg"))
         for img in imgs:
-            lines, mc = label_one(predictor, img, args.prompt)
+            lines, mc = label_one(predictor, img, prompt)
             (lbl_dir / f"{img.stem}.txt").write_text("\n".join(lines))
             if mc is not None:
                 confs[img.stem] = mc

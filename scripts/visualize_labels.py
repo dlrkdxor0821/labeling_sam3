@@ -20,6 +20,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from utils.config import load_config
 from utils.paths import DATASETS_ROOT, SPLITS, split_subdirs
 from utils.qc import read_yolo_boxes
+from utils.prompt import ask_existing_dir, ask_choice, confirm
 
 
 def render(img, boxes, class_names, header):
@@ -95,22 +96,22 @@ def visualize_split(subs, split, class_names, make_grid):
 def main():
     cfg = load_config()
     ap = argparse.ArgumentParser()
-    ap.add_argument("--name", default=cfg["name"])
-    ap.add_argument("--split", default="all", choices=["all", "train", "test"])
+    ap.add_argument("--name", default=None)
+    ap.add_argument("--split", default=None, choices=["all", "train", "test"])
     ap.add_argument("--grid", action="store_true", help="also write a _grid.jpg contact sheet")
     args = ap.parse_args()
 
-    dataset_dir = DATASETS_ROOT / args.name
-    if not dataset_dir.exists():
-        raise SystemExit(f"dataset missing: {dataset_dir}")
+    name, dataset_dir = ask_existing_dir("어떤 데이터셋을 시각화할까요?", args.name, DATASETS_ROOT)
+    split_sel = ask_choice("어느 split을 볼까요?", args.split, ["all", "train", "test"], "all")
+    grid = args.grid or confirm("그리드(_grid.jpg)도 만들까요?")
     subs = split_subdirs(dataset_dir)
     classes_file = dataset_dir / "classes.txt"
     class_names = classes_file.read_text().split() if classes_file.exists() else ["object"]
 
     print(f"[viz] dataset: {dataset_dir}  classes={class_names}")
-    splits = SPLITS if args.split == "all" else (args.split,)
+    splits = SPLITS if split_sel == "all" else (split_sel,)
     for split in splits:
-        visualize_split(subs, split, class_names, args.grid)
+        visualize_split(subs, split, class_names, grid)
     print("이미지 뷰어로 _viz 폴더를 열어 한 장씩 확인하세요 (예: xdg-open <_viz>)")
 
 
