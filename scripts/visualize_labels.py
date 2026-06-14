@@ -77,7 +77,12 @@ def visualize_split(subs, split, class_names, make_grid):
         out = render(img, boxes, class_names, header)
         cv2.imwrite(str(viz_dir / ip.name), out)
         if make_grid:
-            tiles.append(cv2.resize(out, (320, 180)))
+            tile = cv2.resize(out, (320, 180))
+            # 축소돼도 프레임 번호가 또렷하게 보이도록 고정 크기 라벨바를 덧그림
+            cv2.rectangle(tile, (0, 0), (320, 26), (0, 0, 0), -1)
+            cv2.putText(tile, ip.stem, (6, 19), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.62, (0, 255, 255), 2, cv2.LINE_AA)
+            tiles.append(tile)
 
     if make_grid and tiles:
         cols = 6

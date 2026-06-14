@@ -63,7 +63,8 @@ laveling_sam3/
     ├── visualize_labels.py          # 라벨 박스 시각화 (_viz/ 에 저장)
     ├── send_to_review.py            # 통과 프레임을 검수 큐로 재전송 (스팟 수정)
     ├── merge_datasets.py            # 여러 데이터셋을 하나로 합치기 (학습용)
-    └── hf_upload.py                 # 모델/데이터셋 Hugging Face 업로드
+    ├── hf_upload.py                 # 모델/데이터셋 Hugging Face 업로드
+    └── hf_download.py               # 모델/데이터셋 Hugging Face 다운로드
 ```
 
 > ⚠️ 스크립트는 **프로젝트 루트에서** 실행하세요: `python scripts/01_extract_frames.py …`
@@ -310,10 +311,10 @@ python scripts/06_train_yolo.py --name books_all     # 합친 데이터셋으로
 
 ---
 
-## ☁️ Hugging Face 에 모델/데이터셋 올리기 (보조 도구)
+## ☁️ Hugging Face 에 모델/데이터셋 올리기·받기 (보조 도구)
 
-학습한 모델(`model/<name>/`)이나 데이터셋(`datasets/<name>/`)을 Hugging Face Hub 에 올립니다.
-먼저 한 번 로그인(`hf auth login`, **Write** 토큰) 후:
+**올리기** — 학습한 모델(`model/<name>/`)이나 데이터셋(`datasets/<name>/`)을 Hugging Face Hub 에
+올립니다. 먼저 한 번 로그인(`hf auth login`, **Write** 토큰) 후:
 
 ```bash
 python scripts/hf_upload.py
@@ -331,6 +332,19 @@ python scripts/hf_upload.py
 >
 > 스크립트가 `(있는 것: bluebook)` 처럼 가능한 폴더명을 보여주고, 없는 이름은 다시 물어봅니다.
 > `_viz/`·`_needs_review/`·`__pycache__` 등 미리보기·잔여물은 업로드에서 자동 제외됩니다.
+
+**받기** — `hf_download.py` 로 HF의 모델/데이터셋을 가져옵니다 (공개 repo 는 로그인 불필요):
+```bash
+python scripts/hf_download.py
+#  1) model / dataset ?
+#  2) HF username?      (사용자/조직, 예: facebook)
+#  3) repo 이름?
+#  4) 로컬 저장 이름?    (기본 = repo 이름)
+# -> model/<이름>/ 또는 datasets/<이름>/ 로 저장
+```
+> 모델을 받으면 `model/<이름>/train/weights/best.pt` 구조가 복원돼 `07_predict.py --name <이름>`
+> 으로 바로 추론됩니다. 데이터셋은 `data.yaml` 경로가 업로더 기준이라, 학습 전
+> `05_export_yolo.py` 로 재생성하세요.
 
 ---
 

@@ -6,17 +6,12 @@ import sys, pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from utils.config import load_config
 from utils.paths import DATASETS_ROOT
-from utils.prompt import ask_existing_dir
+from utils.prompt import ask_existing_dir, ask_choice, ask_int
 
 AVAILABLE_MODELS = [
     "yolo11n", "yolo11s", "yolo11m", "yolo11l", "yolo11x",
     "yolov8n", "yolov8s", "yolov8m", "yolov8l", "yolov8x",
 ]
-
-
-def ask(label, default):
-    val = input(f"{label} [{default}]: ").strip()
-    return val or str(default)
 
 
 def main():
@@ -35,11 +30,12 @@ def main():
     if args.yes:
         model, epochs, imgsz, batch = t["yolo_model"], t["epochs"], t["imgsz"], t["batch"]
     else:
-        print("Available models:", " / ".join(AVAILABLE_MODELS))
-        model = ask("YOLO model", t["yolo_model"])
-        epochs = int(ask("epochs", t["epochs"]))
-        imgsz = int(ask("imgsz", t["imgsz"]))
-        batch = int(ask("batch", t["batch"]))
+        default_model = t["yolo_model"] if t["yolo_model"] in AVAILABLE_MODELS else AVAILABLE_MODELS[0]
+        print("선택 가능 모델:", " / ".join(AVAILABLE_MODELS))
+        model = ask_choice("YOLO model", None, AVAILABLE_MODELS, default_model)
+        epochs = ask_int("epochs", None, t["epochs"])
+        imgsz = ask_int("imgsz", None, t["imgsz"])
+        batch = ask_int("batch", None, t["batch"])
 
     try:
         from ultralytics import YOLO
