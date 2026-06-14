@@ -5,7 +5,10 @@ from pathlib import Path
 from utils.config import load_config
 from utils.paths import DATASETS_ROOT
 
-AVAILABLE_MODELS = ["yolo11n", "yolo11s", "yolo11m", "yolo11l", "yolo11x"]
+AVAILABLE_MODELS = [
+    "yolo11n", "yolo11s", "yolo11m", "yolo11l", "yolo11x",
+    "yolov8n", "yolov8s", "yolov8m", "yolov8l", "yolov8x",
+]
 
 
 def ask(label, default):
@@ -43,7 +46,7 @@ def main():
     yolo = YOLO(f"{model}.pt")
     # absolute project path: a relative one gets nested under runs/detect/ by Ultralytics
     yolo.train(
-        data=str(data_yaml), epochs=epochs, imgsz=imgsz, batch=batch,
+        data=str(data_yaml), epochs=epochs, imgsz=imgsz, batch=batch, device=0,
         project=str((Path("model") / args.name).resolve()), name="train", exist_ok=True,
     )
     print(f"done -> model/{args.name}/train/weights/best.pt + results.png")

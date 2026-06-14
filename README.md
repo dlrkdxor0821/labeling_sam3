@@ -92,11 +92,32 @@ laveling_sam3/
 > 예시: 객체 `"science book"`, 프로젝트 이름 `lecture_book`
 
 ### 0. 준비 (최초 1회)
+
+이 저장소에는 이미 `.venv` 가상환경이 구성되어 있고 의존성도 설치되어 있습니다.
+**매 작업 시작 시 가상환경만 활성화하면 됩니다.**
+
 ```bash
-python3 -m venv ~/venv/laveling && source ~/venv/laveling/bin/activate
-pip install ultralytics labelme opencv-python   # + 전용 CLIP, ffmpeg
-# Hugging Face에서 sam3.pt 다운로드 → model/sam3.pt
+source .venv/bin/activate        # 가상환경 활성화 (이후 모든 스크립트는 여기서 실행)
 ```
+
+> 처음부터 새로 구성하거나 패키지가 빠졌을 때만:
+> ```bash
+> python3 -m venv .venv && source .venv/bin/activate
+> pip install -r requirements.txt
+> # GPU(RTX 4060)는 ultralytics 전에 CUDA torch 먼저:
+> #   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+> # SAM3용 Ultralytics CLIP 포크:
+> #   pip install git+https://github.com/ultralytics/CLIP.git
+> ```
+
+**설치 확인** — 아래가 `cuda? True` 면 GPU 학습 준비 완료:
+```bash
+python -c "import torch; print('torch', torch.__version__, 'cuda?', torch.cuda.is_available())"
+# → torch 2.6.0+cu124 cuda? True
+```
+
+⚠️ **SAM3 가중치만 별도** — pip로 설치 안 됨. [Hugging Face SAM3 페이지](https://huggingface.co/)에서
+접근 권한 신청 후 `model/sam3.pt` 에 직접 배치 (`02_label_sam3.py` 실행 전 필요).
 
 ### 1. 영상 배치 👤
 - 학습용 영상 → `video/lecture_book/train/`  (책을 여러 각도·거리·조명으로)

@@ -24,7 +24,7 @@ def load_predictor(model_path, conf, half):
             f"SAM3 weights missing: {model_path}\n"
             "Request access on Hugging Face, then place sam3.pt under model/."
         )
-    overrides = dict(conf=conf, task="segment", mode="predict",
+    overrides = dict(conf=conf, task="segment", mode="predict", device=0,
                      model=str(model_path), half=half, save=False, verbose=False)
     return SAM3SemanticPredictor(overrides=overrides)
 

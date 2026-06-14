@@ -24,7 +24,7 @@ def main():
 
     source = 0 if args.source == "camera" else args.source
     yolo = YOLO(weights)
-    results = yolo.predict(source=source, show=True, stream=(source == 0))
+    results = yolo.predict(source=source, show=True, stream=(source == 0), device=0)
     if source == 0:
         for _ in results:  # consume the live stream to keep the camera window open
             pass
