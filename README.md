@@ -56,7 +56,8 @@ laveling_sam3/
     ├── 03_qc_flag.py
     ├── 05_export_yolo.py
     ├── 06_train_yolo.py
-    └── 07_predict.py
+    ├── 07_predict.py
+    └── run_labelme.py               # labelme 실행 런처 (Qt 충돌 우회)
 ```
 
 > ⚠️ 스크립트는 **프로젝트 루트에서** 실행하세요: `python scripts/01_extract_frames.py …`
@@ -174,10 +175,16 @@ python scripts/03_qc_flag.py --name lecture_book
 
 ### 5. 수동 검수 (labelme) 👤
 ```bash
-labelme datasets/lecture_book/train/_needs_review/
-labelme datasets/lecture_book/test/_needs_review/
+python scripts/run_labelme.py datasets/lecture_book/train/_needs_review/
+python scripts/run_labelme.py datasets/lecture_book/test/_needs_review/
 # SAM3 박스가 미리 그려진 채로 열림 → 틀린 것만 수정 후 저장
 ```
+
+> ⚠️ **`labelme` 를 직접 실행하지 말고 `scripts/run_labelme.py` 런처를 쓰세요.**
+> `opencv-python` 이 import 시 Qt 플러그인 경로를 가로채서, 그냥 `labelme` 로 켜면
+> `Could not load the Qt platform plugin "xcb"` 에러로 죽습니다. 런처는 cv2를 먼저
+> 로드시킨 뒤 Qt 경로를 PyQt5의 정상 플러그인으로 되돌려 이 충돌을 피합니다.
+> (인자는 `labelme` 와 동일하게 받습니다)
 
 ### 6. 데이터셋 확정 🤖
 ```bash
