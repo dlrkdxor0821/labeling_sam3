@@ -19,7 +19,7 @@
 ## 📦 환경
 
 - Ubuntu 24.04 · Python 3.12 · NVIDIA RTX 4060 (VRAM 8GB)
-- **SAM3 가중치** `sam3.pt` 는 [Hugging Face SAM3 페이지](https://huggingface.co/)에서 접근 권한 신청 후 수동 다운로드 → `model/sam3.pt` 에 배치
+- **SAM3 가중치** `sam3.pt` 는 [Hugging Face `facebook/sam3`](https://huggingface.co/facebook/sam3)에서 접근 승인 후 수동 다운로드 → `model/sam3.pt` 에 배치 (자세한 절차: [0. 준비](#0-준비-최초-1회))
 
 ---
 
@@ -121,8 +121,35 @@ python -c "import torch; print('torch', torch.__version__, 'cuda?', torch.cuda.i
 # → torch 2.6.0+cu124 cuda? True
 ```
 
-⚠️ **SAM3 가중치만 별도** — pip로 설치 안 됨. [Hugging Face SAM3 페이지](https://huggingface.co/)에서
-접근 권한 신청 후 `model/sam3.pt` 에 직접 배치 (`scripts/02_label_sam3.py` 실행 전 필요).
+#### SAM3 가중치 받기 (`model/sam3.pt`)
+
+SAM3는 Meta 라이선스 게이트 모델이라 **자동 다운로드가 안 됩니다.** 접근 승인 후 직접 받아야 해요.
+(`scripts/02_label_sam3.py` 실행 전 필수)
+
+**1) Hugging Face 접근 권한 신청**
+[huggingface.co/facebook/sam3](https://huggingface.co/facebook/sam3) → 약관 동의 → **Request access** 클릭 → Meta 승인 대기 (수 분~수 시간)
+
+**2) HF 토큰 발급 & 로그인** (승인되면 인증 필요)
+```bash
+source .venv/bin/activate
+pip install -U huggingface_hub
+hf auth login        # huggingface.co/settings/tokens 에서 Read 토큰 발급 후 붙여넣기
+```
+
+**3) 가중치 다운로드 → `model/sam3.pt`**
+```bash
+hf download facebook/sam3 sam3.pt --local-dir model/
+ls -la model/sam3.pt          # 파일 존재 확인 (수 GB)
+```
+> `config.yaml`의 `sam3.model: model/sam3.pt` 경로와 일치합니다.
+
+**4) CLIP 포크** (텍스트 프롬프트용 — 보통 이미 설치됨)
+```bash
+pip install git+https://github.com/ultralytics/CLIP.git
+```
+
+> ⚠️ 비공식 미러(`1038lab/sam3` 등) 말고 **공식 `facebook/sam3`** 를 쓰세요.
+> 라벨링 시 `bpe_simple_vocab` 관련 에러가 나면 BPE vocab도 별도로 받아야 합니다.
 
 ### 1. 영상 배치 👤
 - 학습용 영상 → `video/lecture_book/train/`  (책을 여러 각도·거리·조명으로)
