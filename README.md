@@ -51,6 +51,7 @@ laveling_sam3/
 ├── config.yaml                     # 기본 파라미터
 ├── utils/                          # 공용 모듈 (스크립트가 import)
 └── scripts/                        # 파이프라인 스크립트 (루트에서 실행)
+    ├── labeling_sam3.py             # 🎛️ 컨트롤러 (메뉴로 전체 단계 실행)
     ├── 01_extract_frames.py
     ├── 02_label_sam3.py
     ├── 03_qc_flag.py
@@ -61,7 +62,8 @@ laveling_sam3/
     ├── run_labelme.py               # labelme 실행 런처 (Qt 충돌 우회)
     ├── visualize_labels.py          # 라벨 박스 시각화 (_viz/ 에 저장)
     ├── send_to_review.py            # 통과 프레임을 검수 큐로 재전송 (스팟 수정)
-    └── merge_datasets.py            # 여러 데이터셋을 하나로 합치기 (학습용)
+    ├── merge_datasets.py            # 여러 데이터셋을 하나로 합치기 (학습용)
+    └── hf_upload.py                 # 모델/데이터셋 Hugging Face 업로드
 ```
 
 > ⚠️ 스크립트는 **프로젝트 루트에서** 실행하세요: `python scripts/01_extract_frames.py …`
@@ -100,6 +102,13 @@ laveling_sam3/
 ---
 
 ## ⚙️ 사용법 (단계별)
+
+> 🎛️ **가장 쉬운 방법 — 컨트롤러 하나로 전부 실행:**
+> ```bash
+> python scripts/labeling_sam3.py
+> ```
+> 메뉴가 뜨고 번호를 고르면 해당 단계가 실행됩니다(각 단계는 알아서 대화형으로 물어봄).
+> 끝나면 메뉴로 돌아와요. 아래 단계별 설명은 각 스크립트를 직접 실행할 때의 참고용입니다.
 
 > 예시: 객체 `"science book"`, 프로젝트 이름 `lecture_book`
 
@@ -298,6 +307,30 @@ python scripts/merge_datasets.py
 python scripts/06_train_yolo.py --name books_all     # 합친 데이터셋으로 학습
 ```
 > 클래스가 다르면(book + apple) 합친 모델은 **여러 클래스를 동시에** 탐지하게 됩니다.
+
+---
+
+## ☁️ Hugging Face 에 모델/데이터셋 올리기 (보조 도구)
+
+학습한 모델(`model/<name>/`)이나 데이터셋(`datasets/<name>/`)을 Hugging Face Hub 에 올립니다.
+먼저 한 번 로그인(`hf auth login`, **Write** 토큰) 후:
+
+```bash
+python scripts/hf_upload.py
+#  1) model / dataset ?
+#  2) 올릴 이름?       (= 프로젝트 폴더명)
+#  3) HF username?     (사용자/조직, 기본값 = 로그인 계정)
+#  4) repo 이름?       (기본값 = 올릴 이름)
+#  5) private?         [y/N]
+# -> repo 는 <username>/<repo-name> 으로 생성됩니다.
+```
+> **2번 "올릴 이름" 은 항상 프로젝트 폴더명**(예: `bluebook`)입니다 — `yolov8n` 같은 YOLO 모델
+> 종류가 아니에요. 종류별 실제 경로:
+> - **dataset** 선택 → `datasets/<이름>/` (예: `datasets/bluebook/`)
+> - **model** 선택 → `model/<이름>/` (예: `model/bluebook/`, `06_train_yolo` 학습 후 생성)
+>
+> 스크립트가 `(있는 것: bluebook)` 처럼 가능한 폴더명을 보여주고, 없는 이름은 다시 물어봅니다.
+> `_viz/`·`_needs_review/`·`__pycache__` 등 미리보기·잔여물은 업로드에서 자동 제외됩니다.
 
 ---
 

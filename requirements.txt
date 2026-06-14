@@ -7,6 +7,7 @@ pytest>=8.0
 # Labeling & training
 ultralytics>=8.3.237      # SAM3 (Phase 2) + YOLO (Phase 5)
 labelme>=5.5              # manual review/correction (Phase 4)
+huggingface_hub>=0.20     # SAM3 weight download + model/dataset upload (hf_upload)
 
 # Notes:
 # - GPU(RTX 4060): install CUDA torch BEFORE ultralytics, e.g.
