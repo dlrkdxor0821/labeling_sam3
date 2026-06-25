@@ -1,5 +1,6 @@
 """Interactive YOLO training: pick model + settings, train, save under model/<name>/."""
 import argparse
+import time
 from pathlib import Path
 
 import sys, pathlib
@@ -43,6 +44,26 @@ def main():
         raise SystemExit("ultralytics required: pip install -U ultralytics") from e
 
     yolo = YOLO(f"{model}.pt")
+
+    # ----- 전체 학습 진행률 + 예상 남은시간 (epoch 끝날 때마다 1줄) -----
+    start = time.time()
+
+    def _fmt(sec):
+        sec = int(sec)
+        h, sec = divmod(sec, 3600)
+        m, sec = divmod(sec, 60)
+        return f"{h}h {m}m" if h else f"{m}m {sec}s"
+
+    def _on_epoch_end(trainer):
+        total = getattr(trainer, "epochs", epochs)
+        done = getattr(trainer, "epoch", 0) + 1
+        elapsed = time.time() - start
+        eta = elapsed / done * (total - done) if done else 0
+        print(f"  ⏱  전체 진행률 {done}/{total} ({100 * done / total:.0f}%) | "
+              f"경과 {_fmt(elapsed)} | 남은시간 ≈ {_fmt(eta)}")
+
+    yolo.add_callback("on_fit_epoch_end", _on_epoch_end)
+
     # absolute project path: a relative one gets nested under runs/detect/ by Ultralytics
     yolo.train(
         data=str(data_yaml), epochs=epochs, imgsz=imgsz, batch=batch, device=0,
