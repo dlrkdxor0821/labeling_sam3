@@ -8,6 +8,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from utils.config import load_config
 from utils.paths import DATASETS_ROOT
 from utils.prompt import ask_existing_dir, ask_choice, ask_int
+from utils.metrics import top_epochs, format_top_table, save_ranking_png
 
 AVAILABLE_MODELS = [
     "yolo11n", "yolo11s", "yolo11m", "yolo11l", "yolo11x",
@@ -70,6 +71,16 @@ def main():
         project=str((Path("model") / name).resolve()), name="train", exist_ok=True,
     )
     print(f"done -> model/{name}/train/weights/best.pt + results.png")
+
+    # fitness 상위 10 epoch 표 — best.pt 가 어느 epoch에서 나왔는지 바로 확인
+    results_csv = Path("model") / name / "train" / "results.csv"
+    if results_csv.exists():
+        rows = top_epochs(results_csv, 10)
+        print("\n=== fitness 상위 10 epoch (best.pt = 1위) ===")
+        print(format_top_table(rows))
+        print(f"best.pt = epoch {rows[0]['epoch']}")
+        png = save_ranking_png(results_csv, results_csv.parent / "metrics_report.png", name=name)
+        print(f"리포트 이미지 저장됨 -> {png}")
 
 
 if __name__ == "__main__":
